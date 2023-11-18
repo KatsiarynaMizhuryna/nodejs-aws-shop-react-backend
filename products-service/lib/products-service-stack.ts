@@ -1,6 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as lambda from '@aws-cdk/aws-lambda';
 import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpMethod } from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
@@ -19,6 +18,13 @@ export class ProductsServiceStack extends cdk.Stack {
       entry:'handlers/getProductsListHandler.ts'
       
     });
+      
+      const getProductsById = new NodejsFunction(this, "getProductsByIdLambda", {
+       environment: { PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!},
+       functionName:'getProductsById',
+       entry:'handlers/getProductsByIdHandler.ts'
+       
+      });
     
     const api = new apiGateway.HttpApi(this,'ProductAPI',{corsPreflight:{
           allowHeaders:['*'],
@@ -31,5 +37,11 @@ export class ProductsServiceStack extends cdk.Stack {
       path: '/products',
       methods:[HttpMethod.GET]
     })
+     
+     api.addRoutes({
+       integration: new HttpLambdaIntegration('getProductsByIdIntegration', getProductsById),
+       path: '/products/{productId}',
+       methods:[HttpMethod.GET]
+     })
   }
 }
