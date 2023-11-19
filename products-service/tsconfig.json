@@ -6,6 +6,8 @@
       "es2020",
       "dom"
     ],
+    "esModuleInterop": true,
+    "types": ["node","jest"],
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,
@@ -27,5 +29,9 @@
   "exclude": [
     "node_modules",
     "cdk.out"
-  ]
+  ],
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
 }

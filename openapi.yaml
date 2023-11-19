@@ -1,0 +1,81 @@
+openapi: 3.0.3
+info:
+  title: Swagger Products API - OpenAPI 3.0
+  description: |-
+    This is a sample Product Shop API based on the OpenAPI 3.0 specification.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+tags:
+  - name: Products
+    description: API for products
+paths:
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Get all Products
+      description: Get all Products
+      responses:
+        '200':
+          description: All products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+  /products/{productId}:
+    get:
+      tags:
+        - Products
+      summary: Get Product by Id
+      description: Find Product by ID
+      operationId: getProductsById
+      parameters:
+        - name: productId
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Found product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product was not found!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Product:
+      required:
+        - id
+      properties:
+        description:
+          type: string
+        id:
+          type: string
+        price:
+          type: number
+        title:
+          type: string
+    ErrorResponse:
+      required:
+        - statusCode
+        - message
+      properties:
+        statusCode:
+          type: number
+        message:
+          type: string
+      example:
+        statusCode: 4xx
+        message: reason
