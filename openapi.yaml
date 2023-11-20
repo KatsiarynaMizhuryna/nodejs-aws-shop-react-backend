@@ -7,6 +7,8 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.11
+  servers:
+    - url: https://hjfant4yl8.execute-api.eu-west-1.amazonaws.com
 tags:
   - name: Products
     description: API for products
