@@ -1,4 +1,4 @@
-import { products} from "../products";
+import { products} from "../mockData/products";
 import { createResponse} from "../utils/utils";
 
 // @ts-ignore

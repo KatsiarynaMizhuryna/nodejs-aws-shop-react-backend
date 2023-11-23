@@ -1,4 +1,4 @@
-import { products } from "../products";
+import { products } from "../mockData/products";
 import { createResponse } from "../utils/utils";
 
 export const getProductById = (productId: string) => {
