@@ -4,18 +4,30 @@ import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpMethod } from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import {PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 
 
 export class ProductsServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-    
-
+      
+      const role = new Role(this, "dynamodbAccessRole", {
+          assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+      });
+      
+      role.addToPolicy(
+          new PolicyStatement({
+              actions: ["dynamodb:*", "logs:PutLogEvents"],
+              resources: ["*"],
+          })
+      );
+      
     const getProductsList = new NodejsFunction(this, "getProductsListLambda", {
       // runtime: lambda.Runtime.NODEJS_18_X,
       environment: { PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!},
       functionName:'getProductsList',
-      entry:'handlers/getProductsListHandler.ts'
+      entry:'handlers/getProductsListHandler.ts',
+      role,
       
     });
       
