@@ -30,11 +30,12 @@ export class ProductsServiceStack extends cdk.Stack {
       role,
       
     });
-      
-      const getProductsById = new NodejsFunction(this, "getProductsByIdLambda", {
+    
+    const getProductsById = new NodejsFunction(this, "getProductsByIdLambda", {
        environment: { PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!},
        functionName:'getProductsById',
-       entry:'handlers/getProductsByIdHandler.ts'
+       entry:'handlers/getProductsByIdHandler.ts',
+       role,
        
       });
     
