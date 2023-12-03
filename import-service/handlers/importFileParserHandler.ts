@@ -16,14 +16,13 @@ export const handler = async (event: S3Event): Promise<void> => {
     };
     
     try {
-        const file = await client.send(new GetObjectCommand(data));
-        const readableStream = file.Body as Readable;
+       const readableStream = (await client.send(new GetObjectCommand(data))).Body as Readable;
         
         await new Promise((resolve, reject) => {
             readableStream
                 .pipe(csvParser())
                 .on("obj", async (obj: any) => {
-                    console.log(obj);
+                    console.log('DATA:', obj);
                 })
                 .on("error", reject)
                 .on("end", resolve);
