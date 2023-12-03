@@ -1,6 +1,7 @@
 import { S3Event } from "aws-lambda";
 import { S3Client, CopyObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { Readable } from "stream";
+import {createResponse} from "../utils/utils";
 const csvParser = require("csv-parser");
 
 export const handler = async (event: S3Event): Promise<void> => {
@@ -41,6 +42,7 @@ export const handler = async (event: S3Event): Promise<void> => {
         console.log("Object has been deleted from uploaded");
     } catch (error) {
         console.error("Error:", error);
-        throw error;
+        // @ts-ignore
+        return createResponse(500, { message: error.message });
     }
 };
