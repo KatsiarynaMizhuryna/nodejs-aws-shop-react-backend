@@ -42,7 +42,16 @@ export class ProductsServiceStack extends cdk.Stack {
        functionName:'getProductsById',
        entry:'handlers/getProductsByIdHandler.ts',
        role,
-       
+      });
+      
+      const createProduct = new NodejsFunction(this, "createProductLambda", {
+          environment: {
+              PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!,
+              PRODUCT_TABLE_NAME: 'Products',
+              STOCK_TABLE_NAME: 'Stocks'},
+          functionName:'createProduct',
+          entry:'handlers/createProductHandler.ts',
+          role,
       });
     
     const api = new apiGateway.HttpApi(this,'ProductAPI',{corsPreflight:{
@@ -62,5 +71,11 @@ export class ProductsServiceStack extends cdk.Stack {
        path: '/products/{productId}',
        methods:[HttpMethod.GET]
      })
+     
+     api.addRoutes({
+       integration: new HttpLambdaIntegration('createProductIntegration', createProduct),
+       path: '/products',
+       methods:[HttpMethod.POST]
+                    })
   }
 }
