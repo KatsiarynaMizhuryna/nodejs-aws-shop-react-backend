@@ -38,13 +38,14 @@ export class ImportServiceStack extends cdk.Stack {
           s3.EventType.OBJECT_CREATED,
           new s3notifications.LambdaDestination(importFileParser),
           { prefix: "uploaded/" })
-     
-    
-    const api = new apiGateway.HttpApi(this,'ImportFileAPI',{corsPreflight:{
-        allowHeaders:['*'],
-        allowOrigins:['*'],
-        allowMethods:[apiGateway.CorsHttpMethod.ANY]
-      }});
+      
+    const api = new apiGateway.HttpApi(this, 'ImportFileAPI', {
+        corsPreflight: {
+            allowHeaders: ['*'],
+            allowOrigins: ['*'],
+            allowMethods: [apiGateway.CorsHttpMethod.ANY],
+        },
+    });
     
     api.addRoutes({
         integration: new HttpLambdaIntegration('importProductsFile', importProductsFile),
