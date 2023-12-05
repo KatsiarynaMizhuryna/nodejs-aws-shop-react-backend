@@ -26,6 +26,9 @@
       "./node_modules/@types"
     ]
   },
+  "include": [
+    "fillTable.ts"
+  ],
   "exclude": [
     "node_modules",
     "cdk.out"
