@@ -10,22 +10,28 @@ export const handler = async (event: S3Event): Promise<void> => {
     const fileName = decodeURIComponent(
         event.Records[0].s3.object.key.replace(/\+/g, ' ')
     );
+    console.log(fileName)
     const data = {
         Bucket: bucket,
         Key: fileName,
     };
-    
+    console.log(data)
     try {
        const readableStream = (await client.send(new GetObjectCommand(data))).Body as Readable;
-        
-        await new Promise((resolve, reject) => {
-            readableStream
-                .pipe(csvParser())
-                .on("obj", async (obj: any) => {
-                    console.log('DATA:', obj);
-                })
-                .on("error", reject)
-                .on("end", resolve);
+        console.log('readableStream',readableStream)
+        await new Promise<void>((resolve, reject) => {
+            const parser = readableStream.pipe(csvParser());
+            parser.on("data", (obj: any) => {
+                console.log('DATA:', obj);
+            });
+            
+            parser.on("error", (error: any) => {
+                reject(error);
+            });
+            
+            parser.on("finish", () => {
+                resolve();
+            });
         });
         
         const copyData = {
