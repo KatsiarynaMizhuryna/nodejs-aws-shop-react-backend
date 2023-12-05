@@ -76,7 +76,7 @@ export class ProductsServiceStack extends cdk.Stack {
      api.addRoutes({
        integration: new HttpLambdaIntegration('createProductIntegration', createProduct),
        path: '/products',
-       methods:[HttpMethod.PUT]
-                    })
+       methods:[HttpMethod.POST]
+     })
   }
 }
