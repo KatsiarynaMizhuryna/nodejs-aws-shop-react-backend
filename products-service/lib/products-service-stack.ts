@@ -4,7 +4,7 @@ import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpMethod } from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
-import {PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
+import {PolicyStatement, Role, ServicePrincipal, Effect} from "aws-cdk-lib/aws-iam";
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import * as sns  from 'aws-cdk-lib/aws-sns';
 import * as sqs  from 'aws-cdk-lib/aws-sqs';
@@ -62,6 +62,15 @@ export class ProductsServiceStack extends cdk.Stack {
     const importProductTopic = new sns.Topic(this, 'importProductTopic', { topicName: 'import-product-topic'});
     
     const catalogItemsQueue = new sqs.Queue(this, 'catalogItemsQueue', { queueName: 'catalog-items-queue'} );
+    
+    const catalogItemsQueuePolicy = new PolicyStatement({
+      effect: Effect.ALLOW,
+      principals: [new ServicePrincipal("lambda.amazonaws.com")],
+      actions: ["sqs:SendMessage", "sqs:ReceiveMessage"],
+      resources: ["*"],
+  });
+    
+    catalogItemsQueue.addToResourcePolicy(catalogItemsQueuePolicy);
     
     new sns.Subscription(this, 'BigStockSubscription', {
           endpoint: process.env.BIG_STOCK_EMAIL || '',
