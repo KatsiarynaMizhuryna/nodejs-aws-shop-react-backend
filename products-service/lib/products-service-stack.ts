@@ -73,9 +73,14 @@ export class ProductsServiceStack extends cdk.Stack {
     catalogItemsQueue.addToResourcePolicy(catalogItemsQueuePolicy);
     
     new sns.Subscription(this, 'BigStockSubscription', {
-          endpoint: process.env.BIG_STOCK_EMAIL || '',
-          protocol:sns.SubscriptionProtocol.EMAIL,
-          topic: importProductTopic,
+      endpoint: process.env.BIG_STOCK_EMAIL || '',
+      protocol:sns.SubscriptionProtocol.EMAIL,
+      topic: importProductTopic,
+    filterPolicy: {
+        price: sns.SubscriptionFilter.numericFilter({
+        lessThanOrEqualTo: 20,
+})
+        }
     })
     
     const catalogBatchProcess = new NodejsFunction(this, "catalogBatchProcessLambda", {
