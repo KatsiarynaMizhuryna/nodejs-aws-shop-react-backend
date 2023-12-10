@@ -27,11 +27,13 @@
     "@aws-cdk/aws-dynamodb": "^1.121.0",
     "@aws-cdk/aws-lambda": "^1.19.0",
     "@aws-sdk/client-dynamodb": "^3.454.0",
+    "@aws-sdk/client-sns": "^3.465.0",
     "@aws-sdk/lib-dynamodb": "^3.454.0",
     "@types/aws-lambda": "^8.10.130",
     "aws-cdk-lib": "2.109.0",
     "aws-sdk": "^2.1502.0",
     "constructs": "^10.0.0",
+    "dotenv": "^16.3.1",
     "source-map-support": "^0.5.21",
     "uuid": "^9.0.1"
   }

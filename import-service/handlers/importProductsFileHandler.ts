@@ -1,5 +1,5 @@
 import {APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda';
-import { PutBucketCorsCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createResponse} from "../utils/utils";
 
@@ -7,28 +7,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
  try {
    const bucket = "shop-import-bucket";
    const client = new S3Client({ region: "eu-west-1" });
-   
-   // const rules = {
-   //    Bucket: bucket,
-   //    CORSConfiguration: {
-   //     CORSRules: [
-   //      {
-   //       AllowedHeaders: ["*"],
-   //       AllowedMethods: ["GET", "PUT", "HEAD"],
-   //       AllowedOrigins: ["*"],
-   //      },
-   //     ],
-   //    },
-   //  };
-    console.log('=========================================')
-    console.log(bucket)
-    console.log('=========================================')
-    // const putBucketCorsCommand = new PutBucketCorsCommand(rules);
-    // await client.send(putBucketCorsCommand);
-    console.log('After executing put bucket cors')
-     console.log(event)
-    
-    const fileName = event.queryStringParameters?.name;
+   const fileName = event.queryStringParameters?.name;
      console.log(fileName)
     if (!fileName) {
         return createResponse(400, { message: 'Filename is required' });
