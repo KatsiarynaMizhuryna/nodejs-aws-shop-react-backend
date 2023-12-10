@@ -5,7 +5,7 @@ import { HttpMethod } from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import {PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
-
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 export class ProductsServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -23,7 +23,7 @@ export class ProductsServiceStack extends cdk.Stack {
       );
       
     const getProductsList = new NodejsFunction(this, "getProductsListLambda", {
-      // runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       environment: {
           PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!,
           PRODUCT_TABLE_NAME: 'Products',
@@ -35,7 +35,8 @@ export class ProductsServiceStack extends cdk.Stack {
     });
     
     const getProductsById = new NodejsFunction(this, "getProductsByIdLambda", {
-       environment: {
+        runtime: Runtime.NODEJS_20_X,
+        environment: {
            PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!,
            PRODUCT_TABLE_NAME: 'Products',
            STOCK_TABLE_NAME: 'Stocks'},
@@ -76,6 +77,6 @@ export class ProductsServiceStack extends cdk.Stack {
        integration: new HttpLambdaIntegration('createProductIntegration', createProduct),
        path: '/products',
        methods:[HttpMethod.POST]
-                    })
+     })
   }
 }

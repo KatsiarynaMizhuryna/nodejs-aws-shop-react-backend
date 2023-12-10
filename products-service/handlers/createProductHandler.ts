@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import {DynamoDBDocumentClient, TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -11,36 +11,34 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
     try {
         const requestBody = JSON.parse(event.body || '{}');
-      
+        const id = uuidv4()
         
-        const productItem = {
-            id: uuidv4(),
-            title: requestBody.title,
-            description: requestBody.description,
-            price: requestBody.price,
-        };
-        const stockItem = {
-            id: productItem.id,
-            count: requestBody.count,
-        };
         
-        const putProductCommand = new PutCommand(
-            {
-                   TableName: 'Products',
-                   Item: productItem,
-                 });
-        
-        await dynamoDBClient.send(putProductCommand);
-        
-       
-        const putStockCommand = new PutCommand(
-            {
-                   TableName: 'Stocks',
-                   Item: stockItem,
-               });
-        
-        await dynamoDBClient.send(putStockCommand);
-        
+        const transactWriteCommand = new TransactWriteCommand( {
+            TransactItems: [
+                {
+                    Put: {
+                        TableName: 'Products',
+                        Item: {
+                            id: id,
+                            description: requestBody.description,
+                            price: requestBody.price,
+                            title: requestBody.title
+                        }
+                    }
+                },
+                {
+                    Put: {
+                        TableName: 'Stocks',
+                        Item: {
+                            product_id: id,
+                            count: requestBody.count
+                        }
+                    }
+                }
+            ]
+        });
+        await documentClient.send(transactWriteCommand);
         return {
             statusCode: 200,
             body: JSON.stringify({ message: 'Product created successfully' }),

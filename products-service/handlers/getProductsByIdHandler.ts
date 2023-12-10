@@ -1,5 +1,5 @@
 import { products } from "../mockData/products";
-import { createResponse } from "../utils/utils";
+import { createResponse} from "../utils/utils";
 import { DynamoDBDocumentClient, ExecuteStatementCommand } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 
