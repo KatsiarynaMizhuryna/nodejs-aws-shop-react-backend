@@ -21,7 +21,7 @@ export class ProductsServiceStack extends cdk.Stack {
       
       role.addToPolicy(
           new PolicyStatement({
-              actions: ["dynamodb:*", "logs:PutLogEvents"],
+              actions: ["dynamodb:*", "logs:*", "sns:publish"],
               resources: ["*"],
           })
       );
