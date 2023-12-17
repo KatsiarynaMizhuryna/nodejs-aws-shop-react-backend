@@ -40,8 +40,11 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent ): Promise<A
     const effect =
         !storedPassword || storedPassword !== userPass ? "Deny" : "Allow";
     try {
-        if (!token) {
+        if (token === 'Basic null') {
+            console.log('========================================')
             console.log("Authorization header is not provided");
+            console.log('Token: ', token)
+            console.log('========================================')
             throw Error("Unauthorized");
         }
         return policy(token, event.methodArn, effect);
