@@ -4,7 +4,7 @@ require('dotenv').config();
 const policy = (
     principalId: string,
     resource: string,
-    effect = "Allow"
+    effect = "Deny"
 ) => {
     return {
         principalId: principalId,
@@ -22,11 +22,20 @@ const policy = (
 };
 
 export const handler = async (event: APIGatewayTokenAuthorizerEvent ): Promise<APIGatewayAuthorizerResult> => {
+    console.log("EVENT:", event);
+    
     const token = event.authorizationToken;
-    const buffer = Buffer.from(token, "base64");
+    
+    console.log("TOKEN:", token);
+    
+    const credentials = token.split(" ")[1];
+    console.log('credentials', credentials)
+    const buffer = Buffer.from(credentials, "base64");
     const [username, userPass] = buffer.toString("utf-8").split(":");
     const storedPassword = process.env[username];
     console.log(`username: ${username}, password: ${userPass}`);
+    console.log('+++++++++++++++++++++')
+    console.log('storedPassword:',storedPassword)
     
     const effect =
         !storedPassword || storedPassword !== userPass ? "Deny" : "Allow";
@@ -39,6 +48,6 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent ): Promise<A
     }
     catch (error) {
         console.log("Invalid auth token. error => ", error);
-        return policy(token, event.methodArn, effect);
+        return policy(token, event.methodArn);
     }
 };

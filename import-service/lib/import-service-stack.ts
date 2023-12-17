@@ -4,14 +4,13 @@ import {NodejsFunction} from "aws-cdk-lib/aws-lambda-nodejs";
 import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpMethod } from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
-import { Runtime, Function } from 'aws-cdk-lib/aws-lambda';
+import { Runtime, Function, CfnPermission } from 'aws-cdk-lib/aws-lambda';
 import * as  s3  from "aws-cdk-lib/aws-s3";
 import * as s3notifications from "aws-cdk-lib/aws-s3-notifications";
 import * as sqs  from 'aws-cdk-lib/aws-sqs';
 import {
     HttpLambdaAuthorizer, HttpLambdaResponseType
 } from "@aws-cdk/aws-apigatewayv2-authorizers-alpha";
-
 require('dotenv').config()
 
 export class ImportServiceStack extends cdk.Stack {
@@ -59,13 +58,15 @@ export class ImportServiceStack extends cdk.Stack {
             allowMethods: [apiGateway.CorsHttpMethod.ANY],
         },
     });
-      const basicAuthorizer = Function.fromFunctionName(
+     
+     
+     const basicAuthorizer = Function.fromFunctionArn(
           this,
-          "ImportBasicAuthorizerLambda",
-          "basicAuthorizer"
+          "basicAuthorizerLambda",
+          process.env.ARN_BASIC_AUTHORIZER!
       );
       
-      const authorizer = new HttpLambdaAuthorizer(
+     const authorizer = new HttpLambdaAuthorizer(
           "BasicAuthorizer",
           basicAuthorizer,
           {
@@ -73,12 +74,18 @@ export class ImportServiceStack extends cdk.Stack {
               resultsCacheTtl: cdk.Duration.seconds(0)
           }
       );
-    
+      new CfnPermission(this, 'LambdaAuthorizerPermission', {
+          action: 'lambda:InvokeFunction',
+          functionName: basicAuthorizer.functionName,
+          principal: 'apigateway.amazonaws.com',
+          sourceAccount: this.account,
+      });
+      
     api.addRoutes({
         integration: new HttpLambdaIntegration('importProductsFile', importProductsFile),
         path: '/import',
         methods:[HttpMethod.GET],
-        authorizer
+        authorizer: authorizer
       })
  
   }

@@ -23,6 +23,7 @@ export const handler = async (event: S3Event): Promise<void> => {
         console.log('readableStream',readableStream)
         await new Promise<void>((resolve, reject) => {
             const parser = readableStream.pipe(csvParser());
+            console.log('++++++++++++++++++++++++++++++++')
             parser.on("data", async (obj: any) => {
             await sqsClient.send(
             new SendMessageCommand({

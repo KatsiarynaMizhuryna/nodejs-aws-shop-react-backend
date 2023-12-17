@@ -25,5 +25,9 @@ export class AuthorizationServiceStack extends cdk.Stack {
        resources: ['*'],
     })
     );
+ 
+    new cdk.CfnOutput(this, 'basicAuthorizerArn', {
+  value: basicAuthorizer.functionArn,
+});
   }
 }
