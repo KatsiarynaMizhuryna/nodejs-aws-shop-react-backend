@@ -4,20 +4,24 @@ import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpMethod } from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
-import {PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
+import {PolicyStatement, Role, ServicePrincipal, Effect} from "aws-cdk-lib/aws-iam";
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import * as sns  from 'aws-cdk-lib/aws-sns';
+import * as sqs  from 'aws-cdk-lib/aws-sqs';
+import {SqsEventSource} from "aws-cdk-lib/aws-lambda-event-sources";
+require('dotenv').config()
 
 export class ProductsServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-      
-      const role = new Role(this, "dynamodbAccessRole", {
+    
+    const role = new Role(this, "dynamodbAccessRole", {
           assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       });
       
       role.addToPolicy(
           new PolicyStatement({
-              actions: ["dynamodb:*", "logs:PutLogEvents"],
+              actions: ["dynamodb:*", "logs:*", "sns:publish"],
               resources: ["*"],
           })
       );
@@ -26,8 +30,8 @@ export class ProductsServiceStack extends cdk.Stack {
       runtime: Runtime.NODEJS_20_X,
       environment: {
           PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!,
-          PRODUCT_TABLE_NAME: 'Products',
-          STOCK_TABLE_NAME: 'Stocks'},
+          PRODUCT_TABLE_NAME: process.env.PRODUCT_TABLE_NAME!,
+          STOCK_TABLE_NAME: process.env.STOCK_TABLE_NAME!},
       functionName:'getProductsList',
       entry:'handlers/getProductsListHandler.ts',
       role,
@@ -38,22 +42,62 @@ export class ProductsServiceStack extends cdk.Stack {
         runtime: Runtime.NODEJS_20_X,
         environment: {
            PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!,
-           PRODUCT_TABLE_NAME: 'Products',
-           STOCK_TABLE_NAME: 'Stocks'},
+           PRODUCT_TABLE_NAME: process.env.PRODUCT_TABLE_NAME!,
+           STOCK_TABLE_NAME: process.env.STOCK_TABLE_NAME!},
        functionName:'getProductsById',
        entry:'handlers/getProductsByIdHandler.ts',
        role,
       });
       
-      const createProduct = new NodejsFunction(this, "createProductLambda", {
+    const createProduct = new NodejsFunction(this, "createProductLambda", {
           environment: {
-              PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!,
-              PRODUCT_TABLE_NAME: 'Products',
-              STOCK_TABLE_NAME: 'Stocks'},
-          functionName:'createProduct',
-          entry:'handlers/createProductHandler.ts',
+           PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!,
+           PRODUCT_TABLE_NAME: process.env.PRODUCT_TABLE_NAME!,
+           STOCK_TABLE_NAME: process.env.STOCK_TABLE_NAME!},
+        functionName:'createProduct',
+        entry:'handlers/createProductHandler.ts',
           role,
       });
+      
+    const importProductTopic = new sns.Topic(this, 'importProductTopic', { topicName: 'import-product-topic'});
+    
+    const catalogItemsQueue = new sqs.Queue(this, 'catalogItemsQueue', { queueName: 'catalog-items-queue'} );
+    
+    const catalogItemsQueuePolicy = new PolicyStatement({
+      effect: Effect.ALLOW,
+      principals: [new ServicePrincipal("lambda.amazonaws.com")],
+      actions: ["sqs:SendMessage", "sqs:ReceiveMessage"],
+      resources: ["*"],
+  });
+    
+    catalogItemsQueue.addToResourcePolicy(catalogItemsQueuePolicy);
+    
+    new sns.Subscription(this, 'BigStockSubscription', {
+      endpoint: process.env.BIG_STOCK_EMAIL || '',
+      protocol:sns.SubscriptionProtocol.EMAIL,
+      topic: importProductTopic,
+    filterPolicy: {
+        price: sns.SubscriptionFilter.numericFilter({
+        lessThanOrEqualTo: 20,
+})
+        }
+    })
+    
+    const catalogBatchProcess = new NodejsFunction(this, "catalogBatchProcessLambda", {
+          environment: {
+              PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!,
+              IMPORT_PRODUCT_TOPIC_ARN: importProductTopic.topicArn,
+              PRODUCT_TABLE_NAME: 'Products',
+              STOCK_TABLE_NAME: 'Stocks'},
+          functionName:'catalogBatchProcess',
+          entry:'handlers/catalogBatchProcessHandler.ts',
+          role,
+      });
+    
+    importProductTopic.grantPublish(catalogBatchProcess);
+    
+    catalogBatchProcess.addEventSource( new SqsEventSource(catalogItemsQueue, { batchSize: 5}))
+    
     
     const api = new apiGateway.HttpApi(this,'ProductAPI',{corsPreflight:{
           allowHeaders:['*'],

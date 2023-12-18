@@ -2,30 +2,36 @@ import { S3Event } from "aws-lambda";
 import { S3Client, CopyObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { Readable } from "stream";
 import {createResponse} from "../utils/utils";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 const csvParser = require("csv-parser");
+
 
 export const handler = async (event: S3Event): Promise<void> => {
     const client = new S3Client({ region: 'eu-west-1' });
+    const sqsClient = new SQSClient({ region: "eu-west-1" });
     const bucket = event.Records[0].s3.bucket.name;
     const fileName = decodeURIComponent(
         event.Records[0].s3.object.key.replace(/\+/g, ' ')
     );
-    console.log(fileName)
     const data = {
         Bucket: bucket,
         Key: fileName,
     };
-    console.log(data)
+    
     try {
        const readableStream = (await client.send(new GetObjectCommand(data))).Body as Readable;
         console.log('readableStream',readableStream)
         await new Promise<void>((resolve, reject) => {
             const parser = readableStream.pipe(csvParser());
-            parser.on("data", (obj: any) => {
-                console.log('DATA:', obj);
-            });
-            
-            parser.on("error", (error: any) => {
+            parser.on("data", async (obj: any) => {
+            await sqsClient.send(
+            new SendMessageCommand({
+               QueueUrl: process.env.IMPORT_SQS_QUEUE!,
+               MessageBody: JSON.stringify(obj),
+           })
+        );
+    });
+           parser.on("error", (error: any) => {
                 reject(error);
             });
             
