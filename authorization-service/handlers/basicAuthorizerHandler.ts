@@ -29,10 +29,12 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent ): Promise<A
     console.log("TOKEN:", token);
     
     const credentials = token.split(" ")[1];
+    
     console.log('credentials', credentials)
     const buffer = Buffer.from(credentials, "base64");
     const [username, userPass] = buffer.toString("utf-8").split(":");
     const storedPassword = process.env[username];
+    
     console.log(`username: ${username}, password: ${userPass}`);
     console.log('+++++++++++++++++++++')
     console.log('storedPassword:',storedPassword)
@@ -41,10 +43,7 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent ): Promise<A
         !storedPassword || storedPassword !== userPass ? "Deny" : "Allow";
     try {
         if (token === 'Basic null') {
-            console.log('========================================')
             console.log("Authorization header is not provided");
-            console.log('Token: ', token)
-            console.log('========================================')
             throw Error("Unauthorized");
         }
         return policy(token, event.methodArn, effect);
