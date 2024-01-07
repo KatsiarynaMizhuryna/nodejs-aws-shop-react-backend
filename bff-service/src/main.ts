@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import helmet from 'helmet';
 
-const port = process.env.PORT || 5000;
+//  const port = process.env.PORT || 5000;
 async function bootstrap() {
   dotenv.config();
   const app = await NestFactory.create(AppModule);
@@ -12,6 +12,6 @@ async function bootstrap() {
                  });
   app.use(helmet());
   
-  await app.listen(port,'0.0.0.0');
+  await app.listen(8080,'0.0.0.0');
 }
 bootstrap();
