@@ -1,23 +1,12 @@
-FROM alpine as base
-RUN apk add --update nodejs
+FROM node:18-alpine
 WORKDIR /app
-
-FROM base AS dependencies
-WORKDIR /app
-RUN apk add --update npm
 COPY package*.json ./
-RUN npm install \
-  && npm cache clean --force
-
-FROM dependencies as build
-WORKDIR /app
-COPY . .
+RUN npm install
+COPY . ./
 RUN npm run build
 
-FROM base as prod
-WORKDIR /app
-COPY --from=build /app/dist ./dist
-ENV NODE_ENV=production
+USER node
 ENV PORT=4000
 EXPOSE 4000
-CMD ["node", "./dist/main"]
+
+CMD [ "node", "dist/main.js" ]
