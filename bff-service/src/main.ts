@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import helmet from 'helmet';
 
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 3000;
 async function bootstrap() {
   dotenv.config();
   const app = await NestFactory.create(AppModule);
