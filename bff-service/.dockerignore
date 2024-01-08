@@ -1,0 +1,8 @@
+.elasticbeanstalk/
+node_modules/
+dist/
+test/
+.env-example
+.eslintrc.js
+.gitignore
+.pretiterrc
